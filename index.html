@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Downtown Media — Local Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: "Inter", system-ui, sans-serif; min-height: 100vh; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 64px 24px; }
+  .kicker { font-family: "Space Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: 0.18em; color: #39FF14; text-transform: uppercase; margin: 0 0 12px; }
+  h1 { font-family: "Bebas Neue", "Arial Narrow", sans-serif; font-size: clamp(48px, 8vw, 96px); letter-spacing: -2px; margin: 0 0 8px; line-height: 0.95; }
+  h1 .accent { color: #39FF14; }
+  .sub { color: #8a8a8a; font-size: 14px; max-width: 560px; margin: 0 0 48px; line-height: 1.6; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1px; background: #242424; border: 1px solid #242424; }
+  .card { background: #0b0b0b; padding: 28px 24px; text-decoration: none; color: #fff; display: flex; flex-direction: column; gap: 10px; transition: background 0.15s; }
+  .card:hover { background: #141414; }
+  .card__num { font-family: "Space Mono", monospace; font-size: 11px; color: #5a5a5a; letter-spacing: 0.1em; }
+  .card__title { font-family: "Bebas Neue", sans-serif; font-size: 28px; letter-spacing: -0.5px; }
+  .card__desc { font-size: 13px; color: #8a8a8a; line-height: 1.5; }
+  .card__arrow { font-family: "Space Mono", monospace; font-size: 11px; color: #39FF14; margin-top: auto; padding-top: 8px; }
+  footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #242424; font-family: "Space Mono", monospace; font-size: 11px; color: #5a5a5a; letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="kicker">// DOWNTOWN MEDIA</p>
+    <h1>THE <span class="accent">HUB</span></h1>
+    <p class="sub">Click any card below to open that section.</p>
+
+    <div class="grid">
+      <a class="card" href="Downtown%20Media.html">
+        <span class="card__num">01</span>
+        <span class="card__title">Main Hub</span>
+        <span class="card__desc">The flagship Downtown Media homepage — masthead, hero, and blocks.</span>
+        <span class="card__arrow">OPEN →</span>
+      </a>
+      <a class="card" href="Esports.html">
+        <span class="card__num">02</span>
+        <span class="card__title">Esports</span>
+        <span class="card__desc">Esports vertical channel with match schedule and standings.</span>
+        <span class="card__arrow">OPEN →</span>
+      </a>
+      <a class="card" href="Events.html">
+        <span class="card__num">03</span>
+        <span class="card__title">Events</span>
+        <span class="card__desc">Live events calendar and listings.</span>
+        <span class="card__arrow">OPEN →</span>
+      </a>
+      <a class="card" href="Newsletter.html">
+        <span class="card__num">04</span>
+        <span class="card__title">Newsletter</span>
+        <span class="card__desc">Newsletter signup and archive.</span>
+        <span class="card__arrow">OPEN →</span>
+      </a>
+      <a class="card" href="Log%20In.html">
+        <span class="card__num">05</span>
+        <span class="card__title">Log In</span>
+        <span class="card__desc">Auth screen wired to the dt-auth component.</span>
+        <span class="card__arrow">OPEN →</span>
+      </a>
+    </div>
+
+    <footer>DOWNTOWN MEDIA</footer>
+  </div>
+</body>
+</html>

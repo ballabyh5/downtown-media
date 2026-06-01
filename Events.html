@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Events — Downtown Media</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="dt-theme.css" />
+<style>
+  /* ===== shared bits this page reuses ===== */
+  .chip { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; padding: 8px 13px; border: 2px solid var(--hair); color: var(--muted); background: #0a0a0a; transition: all .12s; }
+  .chip:hover { border-color: var(--ink); color: var(--ink); }
+  .chip.is-on { background: var(--accent); color: #000; border-color: var(--accent); }
+  .nl-label { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.16em; color: var(--ink); }
+  .nl-err { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--accent); margin-top: 4px; }
+  .nl-fine { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--dim); margin: 12px 0 0; }
+  .nl-done__badge { display: inline-block; background: var(--accent); color: #000; font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: 0.14em; padding: 6px 12px; margin-bottom: 14px; }
+
+  /* status pills */
+  .ev-status { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; padding: 4px 9px; white-space: nowrap; }
+  .ev-status--ticketslive, .ev-status--sellingfast { background: var(--accent); color: #000; }
+  .ev-status--freeentry { color: var(--accent); border: 1px solid var(--accent); padding: 3px 8px; }
+  .ev-status--soldout { background: #1a1a1a; color: var(--dim); text-decoration: line-through; }
+  .ev-status--past { background: #141414; color: var(--dim); }
+  .ev-type { font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: var(--muted); }
+  .ev-tie { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent); }
+
+  .ev-btn { background: var(--accent); color: #000; font-family: var(--head); font-size: 22px; letter-spacing: 0.8px; padding: 11px 22px; white-space: nowrap; transition: filter .1s, transform .1s; }
+  .ev-btn:hover:not(:disabled) { filter: brightness(1.12); }
+  .ev-btn:disabled { background: #1a1a1a; color: var(--dim); cursor: not-allowed; }
+  .ev-btn--sm { font-size: 17px; padding: 8px 15px; }
+  .ev-btn--full { width: 100%; font-size: 24px; padding: 13px; margin-top: 18px; }
+  .ev-btn--ghost { background: transparent; color: var(--accent); border: 2px solid var(--hair); }
+  .ev-btn--ghost:hover:not(:disabled) { border-color: var(--accent); }
+
+  /* ===== filter bar ===== */
+  .ev-bar { max-width: 1360px; margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--hair); flex-wrap: wrap; }
+  .ev-bar__count { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: var(--accent); }
+  .ev-bar__chips { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+
+  /* ===== hero (next up) ===== */
+  .ev-hero { max-width: 1360px; margin: 0 auto; padding: 30px 24px 38px; }
+  .ev-hero__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--hair); gap: 12px; flex-wrap: wrap; }
+  .ev-hero__when { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--muted); }
+  .ev-hero__grid { display: grid; grid-template-columns: 0.62fr 1fr; gap: 36px; align-items: start; }
+  @media (max-width: 860px) { .ev-hero__grid { grid-template-columns: 1fr; gap: 26px; } }
+
+  .ev-poster { position: relative; }
+  .ev-poster__date { position: absolute; bottom: 0; left: 0; background: var(--accent); color: #000; padding: 10px 16px; display: flex; flex-direction: column; line-height: 0.82; }
+  .ev-poster__date span:first-child { font-family: var(--head); font-size: 52px; }
+  .ev-poster__date span:last-child { font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: 0.18em; }
+
+  .ev-hero__tags { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .ev-hero__title { font-family: var(--head); font-weight: 400; font-size: clamp(38px, 5.4vw, 76px); line-height: 0.86; letter-spacing: 0.5px; margin: 0 0 16px; text-wrap: balance; }
+  .ev-hero__meta { display: flex; flex-direction: column; gap: 7px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: #c8c8c8; margin-bottom: 16px; }
+  .ev-hero__blurb { font-size: 15px; line-height: 1.55; color: #b6b6b6; max-width: 58ch; margin: 0 0 22px; }
+
+  .ev-count { display: flex; gap: 0; border: 2px solid var(--line); width: fit-content; margin-bottom: 22px; }
+  .ev-count__cell { padding: 12px 20px; text-align: center; border-right: 1px solid var(--hair); display: flex; flex-direction: column; gap: 3px; }
+  .ev-count__cell:last-child { border-right: none; }
+  .ev-count__v { font-family: var(--head); font-size: 44px; line-height: 0.78; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .ev-count__k { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; color: var(--muted); }
+
+  .ev-hero__cta { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .ev-price { font-family: var(--head); font-size: 30px; letter-spacing: 0.5px; }
+
+  /* ===== schedule ===== */
+  .ev-sec { max-width: 1360px; margin: 0 auto; padding: 8px 24px 44px; }
+  .ev-sec__head { margin-bottom: 8px; }
+  .ev-month { margin-top: 26px; }
+  .ev-month__label { display: flex; align-items: baseline; gap: 14px; margin-bottom: 14px; }
+  .ev-month__label > span:first-child { font-family: var(--head); font-size: 44px; line-height: 0.8; letter-spacing: 1px; }
+  .ev-month__yr { font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; color: var(--dim); }
+  .ev-month__line { flex: 1; height: 2px; background: var(--hair); align-self: center; }
+  .ev-month__label--past > span:first-child { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.16em; color: var(--dim); }
+
+  .ev-list { display: flex; flex-direction: column; }
+  .ev-row { display: grid; grid-template-columns: 72px 80px 1fr auto; gap: 20px; align-items: center; padding: 18px 8px; border-top: 1px solid var(--hair); transition: background .12s, padding .12s; }
+  .ev-row:last-child { border-bottom: 1px solid var(--hair); }
+  .ev-row:hover { background: #0a0a0a; padding-left: 14px; }
+  .ev-row.is-past { opacity: 0.5; }
+  .ev-row__date { text-align: center; display: flex; flex-direction: column; line-height: 0.8; }
+  .ev-row__day { font-family: var(--head); font-size: 46px; color: var(--accent); }
+  .ev-row.is-past .ev-row__day { color: var(--muted); }
+  .ev-row__dow { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: var(--muted); margin-top: 4px; }
+  .ev-row__thumb { width: 80px; }
+  .ev-row__info { min-width: 0; }
+  .ev-row__tags { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; flex-wrap: wrap; }
+  .ev-row__title { font-family: var(--head); font-weight: 400; font-size: clamp(22px, 2.6vw, 30px); line-height: 0.94; letter-spacing: 0.4px; margin: 0 0 6px; }
+  .ev-row:hover .ev-row__title { color: var(--accent); }
+  .ev-row.is-past:hover .ev-row__title { color: var(--ink); }
+  .ev-row__meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--muted); }
+  .ev-row__act { display: flex; flex-direction: column; align-items: flex-end; gap: 9px; }
+  .ev-row__price { font-family: var(--head); font-size: 24px; letter-spacing: 0.5px; }
+  @media (max-width: 720px) {
+    .ev-row { grid-template-columns: 56px 1fr; gap: 14px; }
+    .ev-row__thumb { display: none; }
+    .ev-row__act { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; }
+    .ev-row__day { font-size: 38px; }
+  }
+
+  /* ===== modal ===== */
+  .ev-modal { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.84); display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .ev-modal__box { position: relative; width: 100%; max-width: 480px; background: #060606; border: 3px solid var(--accent); box-shadow: 10px 10px 0 var(--accent); max-height: 92vh; overflow-y: auto; }
+  .ev-modal__x { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border: 2px solid var(--hair); color: var(--ink); font-size: 14px; display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .ev-modal__x:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+  .ev-modal__pad { padding: 30px; }
+  .ev-modal__title { font-family: var(--head); font-weight: 400; font-size: clamp(34px, 6vw, 52px); line-height: 0.94; letter-spacing: 0.5px; margin: 10px 0 14px; }
+  .ev-modal__ev { font-family: var(--head); font-size: 24px; letter-spacing: 0.4px; color: var(--accent); line-height: 0.95; }
+  .ev-modal__meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--muted); margin-top: 8px; }
+  .ev-modal__line { font-size: 14px; line-height: 1.55; color: #c2c2c2; margin: 16px 0 18px; }
+  .ev-modal__line strong { color: var(--accent); }
+  .ev-modal__fields { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+  .ev-modal__done .ev-modal__title { font-size: clamp(28px, 4.6vw, 40px); line-height: 1.02; margin-bottom: 16px; }
+  .ev-field { background: #0a0a0a; border: 2px solid var(--hair); color: var(--ink); font-family: var(--body); font-size: 15px; font-weight: 600; padding: 13px 14px; outline: none; margin-bottom: 6px; }
+  .ev-field:focus { border-color: var(--accent); }
+  .ev-field::placeholder { color: var(--dim); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="dt-data.jsx"></script>
+<script type="text/babel" src="dt-ui.jsx"></script>
+<script type="text/babel" src="dt-blocks.jsx"></script>
+<script type="text/babel" src="dt-events.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const EV_ACCENTS = ["#39FF14","#FFEA00","#FF3B1D","#1FB6FF","#FF2D9B","#C6FF00","#00FFD1","#B388FF"];
+const pickAccent = () => EV_ACCENTS[Math.floor(Math.random() * EV_ACCENTS.length)];
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accent": "#39FF14",
+  "intensity": "feral",
+  "tickerStyle": "marquee"
+}/*EDITMODE-END*/;
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [cityKey, setCityKey] = useState("HUB");
+  const [type, setType] = useState("ALL");
+  const [modalEv, setModalEv] = useState(null);
+  const city = DT_CITIES[cityKey];
+
+  const [randAccent, setRandAccent] = useState(pickAccent);
+  const [userPicked, setUserPicked] = useState(false);
+  const accent = userPicked ? t.accent : randAccent;
+
+  useEffect(() => {
+    function tick() {
+      const el = document.getElementById("util-clock");
+      if (!el) return;
+      const d = new Date();
+      el.textContent = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata" }) + " IST";
+    }
+    tick();
+    const id = setInterval(tick, 1000 * 20);
+    return () => clearInterval(id);
+  }, []);
+
+  const cityLabel = cityKey === "HUB" ? "ALL CITIES" : cityKey;
+  const all = EV_EVENTS.filter((e) => inCity(e, cityKey) && matchesType(e, type));
+  const upcoming = all.filter((e) => e.status !== "PAST").sort((a, b) => new Date(a.iso) - new Date(b.iso));
+  const past = all.filter((e) => e.status === "PAST").sort((a, b) => new Date(b.iso) - new Date(a.iso));
+  const next = upcoming[0];
+
+  return (
+    <div className="app" data-intensity={t.intensity} style={{ "--accent": accent }}>
+      <Masthead nav={DT_NAV} cityKey={cityKey} setCityKey={setCityKey} cities={DT_CITIES} active="EVENTS" />
+      <Ticker city={city} tickerStyle={t.tickerStyle} />
+      <EVBar type={type} setType={setType} count={upcoming.length} cityLabel={cityLabel} />
+      {next ? (
+        <EVHero ev={next} cityLabel={cityLabel} onRSVP={setModalEv} />
+      ) : (
+        <section className="ev-hero"><div className="es-empty" style={{ marginTop: 30 }}>NO UPCOMING EVENTS IN {cityLabel} FOR THIS FILTER. SWITCH CITY OR TYPE.</div></section>
+      )}
+      <EVSchedule upcoming={next ? upcoming.slice(1) : upcoming} past={past} onRSVP={setModalEv} />
+      <Footer />
+
+      <EVModal key={modalEv ? modalEv.id : "none"} ev={modalEv} onClose={() => setModalEv(null)} />
+
+      <TweaksPanel>
+        <TweakSection label="Brand accent" />
+        <TweakColor label="Hub color" value={accent} options={EV_ACCENTS}
+          onChange={(v) => { setUserPicked(true); setTweak("accent", v); }} />
+        <TweakButton label="⚄ Reroll random color"
+          onClick={() => { setUserPicked(false); setRandAccent(pickAccent()); }} />
+        <TweakSection label="Anti-design intensity" />
+        <TweakRadio label="Vibe" value={t.intensity} options={["clean", "gritty", "feral"]}
+          onChange={(v) => setTweak("intensity", v)} />
+        <TweakSection label="Ticker" />
+        <TweakRadio label="Style" value={t.tickerStyle} options={["marquee", "static"]}
+          onChange={(v) => setTweak("tickerStyle", v)} />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

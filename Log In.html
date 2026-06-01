@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Log In / Join the Gang — Downtown Media</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="dt-theme.css" />
+<style>
+  /* ===== Auth page ===== */
+  .auth { max-width: 1360px; margin: 0 auto; padding: 44px 24px 56px; display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 48px; align-items: start; }
+  @media (max-width: 940px) { .auth { grid-template-columns: 1fr; gap: 36px; } }
+
+  /* shared chip (page-local copy, matches Newsletter) */
+  .chip { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; padding: 9px 14px; border: 2px solid var(--hair); color: var(--muted); background: #0a0a0a; transition: all .12s; }
+  .chip:hover { border-color: var(--ink); color: var(--ink); }
+  .chip.is-on { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* ----- card ----- */
+  .auth-card { border: 3px solid var(--line); background: #060606; box-shadow: 10px 10px 0 var(--accent); }
+  .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 3px solid var(--line); }
+  .auth-tab { font-family: var(--head); font-size: 26px; letter-spacing: 0.6px; padding: 15px 10px; color: var(--muted); border-right: 3px solid var(--line); transition: color .12s, background .12s; }
+  .auth-tab:last-child { border-right: none; }
+  .auth-tab:hover { color: var(--ink); }
+  .auth-tab.is-on { background: var(--accent); color: #000; }
+
+  .auth-card__pad { padding: 30px; }
+  .auth-kicker { margin-bottom: 16px; }
+  .auth-title { font-family: var(--head); font-weight: 400; font-size: clamp(34px, 4.4vw, 52px); line-height: 0.88; letter-spacing: 0.5px; margin: 0 0 24px; text-wrap: balance; }
+
+  .auth-form { display: flex; flex-direction: column; gap: 18px; }
+
+  /* fields */
+  .af { display: flex; flex-direction: column; gap: 9px; }
+  .af__label { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.16em; color: var(--ink); display: flex; align-items: baseline; gap: 10px; }
+  .af__label-sub { color: var(--dim); font-weight: 400; letter-spacing: 0.12em; }
+  .af__wrap { display: flex; align-items: stretch; border: 2px solid var(--hair); background: #0a0a0a; transition: border-color .12s, box-shadow .12s; }
+  .af__wrap:focus-within { border-color: var(--accent); }
+  .af__wrap.is-err { border-color: var(--accent); box-shadow: 4px 4px 0 var(--accent); }
+  .af__input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--ink); font-family: var(--body); font-size: 15px; font-weight: 600; padding: 14px 14px; }
+  .af__input::placeholder { color: var(--dim); }
+  .af__eye { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); padding: 0 14px; border-left: 1px solid var(--hair); flex-shrink: 0; }
+  .af__eye:hover { color: var(--accent); }
+  .af__err { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent); }
+
+  .auth-chips { display: flex; flex-wrap: wrap; gap: 9px; }
+
+  /* checkbox row */
+  .auth-rowline { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: -2px; }
+  .auth-check { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); text-align: left; }
+  .auth-check:hover { color: var(--ink); }
+  .auth-check__box { width: 18px; height: 18px; border: 2px solid var(--hair); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #000; flex-shrink: 0; }
+  .auth-check.is-on { color: var(--ink); }
+  .auth-check.is-on .auth-check__box { background: var(--accent); border-color: var(--accent); }
+  .auth-check--terms { align-items: flex-start; }
+  .auth-check--terms.is-err .auth-check__box { box-shadow: 0 0 0 2px var(--accent); }
+  .auth-link { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent); }
+  .auth-link:hover { text-decoration: underline; }
+
+  .auth-submit { background: var(--accent); color: #000; font-family: var(--head); font-size: 27px; letter-spacing: 1px; padding: 14px; margin-top: 4px; transition: filter .12s, transform .1s; }
+  .auth-submit:hover { filter: brightness(1.12); }
+  .auth-submit:active { transform: translateY(1px); }
+
+  /* divider */
+  .auth-or { display: flex; align-items: center; gap: 14px; color: var(--dim); font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.2em; }
+  .auth-or::before, .auth-or::after { content: ""; flex: 1; height: 1px; background: var(--hair); }
+
+  .auth-oauth { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .auth-oauth__btn { display: flex; align-items: center; justify-content: center; gap: 9px; border: 2px solid var(--hair); background: #0a0a0a; color: var(--ink); font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; padding: 13px; transition: border-color .12s, background .12s; }
+  .auth-oauth__btn:hover { border-color: var(--ink); background: #101010; }
+  .auth-oauth__g { font-family: var(--head); font-size: 19px; line-height: 0.8; color: var(--accent); }
+
+  .auth-switch { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); text-align: center; margin: 2px 0 0; }
+  .auth-switch button { color: var(--accent); font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; }
+  .auth-switch button:hover { text-decoration: underline; }
+
+  /* success state */
+  .auth-card--done { padding: 34px 30px 30px; box-shadow: 10px 10px 0 var(--accent); }
+  .auth-done__badge { display: inline-block; background: var(--accent); color: #000; font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: 0.14em; padding: 6px 12px; margin-bottom: 18px; }
+  .auth-done__title { font-family: var(--head); font-weight: 400; font-size: clamp(44px, 6.4vw, 72px); line-height: 0.86; letter-spacing: 0.5px; margin: 0 0 18px; }
+  .auth-done__line { font-size: 15px; line-height: 1.55; color: #c4c4c4; margin: 0 0 24px; max-width: 46ch; }
+  .auth-done__line strong { color: var(--accent); }
+  .auth-go { display: inline-block; background: var(--accent); color: #000; font-family: var(--head); font-size: 26px; letter-spacing: 1px; padding: 13px 28px; transition: transform .1s, box-shadow .1s; }
+  .auth-go:hover { transform: translate(-3px,-3px); box-shadow: 6px 6px 0 #000; }
+  .auth-redo { display: block; margin-top: 22px; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); }
+  .auth-redo:hover { color: var(--accent); }
+
+  /* ===== right hype panel ===== */
+  .auth-hype { position: relative; display: flex; flex-direction: column; gap: 26px; }
+  @media (max-width: 940px) { .auth-hype { order: -1; } }
+
+  .memcard { position: relative; border: 3px solid var(--line); background: linear-gradient(135deg, #0d0d0d 0%, #050505 100%); padding: 20px; overflow: hidden; }
+  .memcard__top { display: flex; align-items: center; justify-content: space-between; }
+  .memcard__brand { font-family: var(--head); font-size: 30px; letter-spacing: 0.5px; }
+  .memcard__chip { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; background: var(--accent); color: #000; padding: 4px 9px; }
+  .memcard__mid { display: flex; align-items: baseline; gap: 12px; margin: 26px 0 18px; }
+  .memcard__lab { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; color: var(--dim); }
+  .memcard__no { font-family: var(--head); font-size: 54px; line-height: 0.7; letter-spacing: 1px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .memcard__strip { font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.18em; color: #000; background: var(--accent); margin: 0 -20px 18px; padding: 6px 20px; white-space: nowrap; overflow: hidden; }
+  .memcard__bottom { display: flex; gap: 40px; }
+  .memcard__bottom > div { display: flex; flex-direction: column; gap: 4px; }
+  .memcard__k { font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.16em; color: var(--dim); }
+  .memcard__v { font-family: var(--head); font-size: 22px; letter-spacing: 0.4px; }
+
+  .auth-perks { border: 1px solid var(--hair); }
+  .auth-perks__head { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; color: var(--accent); padding: 13px 16px; border-bottom: 1px solid var(--hair); }
+  .perk { display: grid; grid-template-columns: 40px 1fr; gap: 12px; padding: 15px 16px; border-bottom: 1px solid var(--hair); align-items: start; transition: background .12s; }
+  .perk:last-child { border-bottom: none; }
+  .perk:hover { background: #0a0a0a; }
+  .perk__k { font-family: var(--head); font-size: 30px; line-height: 0.8; color: var(--dim); }
+  .perk:hover .perk__k { color: var(--accent); }
+  .perk__txt { display: flex; flex-direction: column; gap: 5px; }
+  .perk__t { font-family: var(--head); font-size: 22px; letter-spacing: 0.4px; line-height: 0.95; }
+  .perk__l { font-size: 13px; line-height: 1.45; color: #b0b0b0; }
+
+  .auth-stamp { position: absolute; bottom: -20px; right: -16px; background: var(--accent); color: #000; font-family: var(--mono); font-weight: 700; font-size: 11px; line-height: 1.35; letter-spacing: 0.08em; text-align: center; padding: 12px 14px; border: 2px solid #000; }
+  .app[data-intensity="feral"] .auth-stamp { transform: rotate(8deg); }
+  .app[data-intensity="feral"] .memcard__chip { transform: rotate(-3deg); }
+  @media (max-width: 520px) { .auth-stamp { display: none; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="dt-data.jsx"></script>
+<script type="text/babel" src="dt-ui.jsx"></script>
+<script type="text/babel" src="dt-blocks.jsx"></script>
+<script type="text/babel" src="dt-auth.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const AUTH_ACCENTS = ["#39FF14","#FFEA00","#FF3B1D","#1FB6FF","#FF2D9B","#C6FF00","#00FFD1","#B388FF"];
+const pickAccent = () => AUTH_ACCENTS[Math.floor(Math.random() * AUTH_ACCENTS.length)];
+
+const startMode = new URLSearchParams(location.search).get("mode") === "signup" ? "signup" : "login";
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accent": "#B388FF",
+  "intensity": "gritty",
+  "tickerStyle": "static"
+}/*EDITMODE-END*/;
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [cityKey, setCityKey] = useState("HUB");
+  const city = DT_CITIES[cityKey];
+
+  const [randAccent, setRandAccent] = useState(pickAccent);
+  const [userPicked, setUserPicked] = useState(false);
+  const accent = userPicked ? t.accent : randAccent;
+
+  useEffect(() => {
+    function tick() {
+      const el = document.getElementById("util-clock");
+      if (!el) return;
+      const d = new Date();
+      el.textContent = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata" }) + " IST";
+    }
+    tick();
+    const id = setInterval(tick, 1000 * 20);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="app" data-intensity={t.intensity} style={{ "--accent": accent }}>
+      <Masthead nav={DT_NAV} cityKey={cityKey} setCityKey={setCityKey} cities={DT_CITIES} />
+      <Ticker city={city} tickerStyle={t.tickerStyle} />
+      <section className="auth">
+        <AuthCard startMode={startMode} />
+        <AuthHype />
+      </section>
+      <Footer />
+
+      <TweaksPanel>
+        <TweakSection label="Brand accent" />
+        <TweakColor label="Hub color" value={accent} options={AUTH_ACCENTS}
+          onChange={(v) => { setUserPicked(true); setTweak("accent", v); }} />
+        <TweakButton label="⚄ Reroll random color"
+          onClick={() => { setUserPicked(false); setRandAccent(pickAccent()); }} />
+        <TweakSection label="Anti-design intensity" />
+        <TweakRadio label="Vibe" value={t.intensity} options={["clean", "gritty", "feral"]}
+          onChange={(v) => setTweak("intensity", v)} />
+        <TweakSection label="Ticker" />
+        <TweakRadio label="Style" value={t.tickerStyle} options={["marquee", "static"]}
+          onChange={(v) => setTweak("tickerStyle", v)} />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

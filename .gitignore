@@ -1,0 +1,16 @@
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Cowork session metadata
+.claude/
+
+# Local screenshots / evidence
+ev/
+
+# Build artifacts
+downtown-media-deploy.zip
+*.zip
+node_modules/

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Daily Drop — Downtown Media</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="dt-theme.css" />
+<style>
+  /* ===== Newsletter page ===== */
+  .nl-hero { max-width: 1360px; margin: 0 auto; padding: 44px 24px 20px; display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 48px; align-items: start; }
+  @media (max-width: 920px) { .nl-hero { grid-template-columns: 1fr; gap: 36px; } }
+
+  .nl-kicker { margin-bottom: 16px; }
+  .nl-title { font-family: var(--head); font-weight: 400; font-size: clamp(40px, 6.2vw, 88px); line-height: 0.86; letter-spacing: 0.5px; margin: 0 0 18px; }
+  .nl-title__hl { color: var(--accent); }
+  .nl-dek { font-size: 16px; line-height: 1.55; color: #c4c4c4; max-width: 54ch; margin: 0 0 26px; }
+
+  .nl-form { display: flex; flex-direction: column; gap: 22px; }
+  .nl-field { display: flex; flex-direction: column; gap: 10px; }
+  .nl-label { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.16em; color: var(--ink); display: flex; align-items: baseline; gap: 10px; }
+  .nl-label__sub { color: var(--dim); font-weight: 400; letter-spacing: 0.12em; }
+
+  .nl-input-wrap { display: flex; border: 3px solid var(--line); background: #0a0a0a; }
+  .nl-input-wrap.is-err { border-color: var(--accent); box-shadow: 4px 4px 0 var(--accent); }
+  .nl-input { flex: 1; background: transparent; border: none; outline: none; color: var(--ink); font-family: var(--body); font-size: 16px; font-weight: 600; padding: 16px 16px; }
+  .nl-input::placeholder { color: var(--dim); }
+  .nl-submit { background: var(--accent); color: #000; font-family: var(--head); font-size: 24px; letter-spacing: 1px; padding: 0 26px; white-space: nowrap; transition: filter .12s; }
+  .nl-submit:hover { filter: brightness(1.12); }
+  .nl-err { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--accent); }
+
+  .nl-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; padding: 9px 14px; border: 2px solid var(--hair); color: var(--muted); background: #0a0a0a; transition: all .12s; }
+  .chip:hover { border-color: var(--ink); color: var(--ink); }
+  .chip.is-on { background: var(--accent); color: #000; border-color: var(--accent); }
+  .chip--tag.is-on { box-shadow: 3px 3px 0 var(--ink); }
+  .nl-fine { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; color: var(--dim); margin: 4px 0 0; }
+
+  /* success state */
+  .nl-done { border: 3px solid var(--accent); background: #060606; padding: 30px; box-shadow: 8px 8px 0 var(--accent); }
+  .nl-done__badge { display: inline-block; background: var(--accent); color: #000; font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: 0.14em; padding: 6px 12px; margin-bottom: 16px; }
+  .nl-done__title { font-family: var(--head); font-size: clamp(40px, 6vw, 64px); line-height: 0.92; margin: 0 0 20px; }
+  .nl-done__line { font-size: 15px; line-height: 1.55; color: #c4c4c4; margin: 0 0 18px; }
+  .nl-done__line strong { color: var(--accent); }
+  .nl-done__tags { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .nl-done__k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--dim); }
+  .nl-redo { margin-top: 22px; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); }
+  .nl-redo:hover { color: var(--accent); }
+
+  /* email preview mock */
+  .nl-hero__r { position: relative; }
+  .mailcard { border: 3px solid var(--line); background: #0b0b0b; }
+  .mailcard__bar { display: flex; align-items: center; gap: 7px; padding: 11px 14px; border-bottom: 1px solid var(--hair); }
+  .mailcard__dot { width: 9px; height: 9px; border-radius: 50%; background: #2c2c2c; }
+  .mailcard__from { font-family: var(--mono); font-size: 9px; letter-spacing: 0.16em; color: var(--dim); margin-left: 8px; }
+  .mailcard__head { padding: 14px 16px; border-bottom: 1px solid var(--hair); }
+  .mailcard__subj { font-family: var(--head); font-size: 26px; letter-spacing: 0.5px; line-height: 0.95; }
+  .mailcard__meta { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--dim); margin-top: 6px; }
+  .mailcard__body { padding: 16px; }
+  .mailcard__hero { margin-bottom: 16px; }
+  .mailcard__row { display: flex; gap: 11px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--hair); font-family: var(--body); font-size: 13.5px; font-weight: 600; line-height: 1.35; color: #d8d8d8; }
+  .mailcard__sq { width: 9px; height: 9px; background: var(--accent); flex-shrink: 0; margin-top: 4px; }
+  .mailcard__cta { margin-top: 16px; background: var(--accent); color: #000; font-family: var(--head); font-size: 20px; letter-spacing: 1px; text-align: center; padding: 12px; }
+  .nl-stamp { position: absolute; bottom: -22px; left: -22px; background: var(--accent); color: #000; font-family: var(--mono); font-weight: 700; font-size: 11px; line-height: 1.3; letter-spacing: 0.08em; text-align: center; padding: 12px 14px; border: 2px solid #000; }
+  .app[data-intensity="feral"] .nl-stamp { transform: rotate(-9deg); }
+  @media (max-width: 520px) { .nl-stamp { display: none; } }
+
+  /* shared section frame */
+  .nl-sec { max-width: 1360px; margin: 0 auto; padding: 40px 24px; }
+  .nl-sec__head { margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid var(--hair); }
+  .nl-sec__head--row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .nl-archive { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent); }
+
+  /* what you get */
+  .nl-get { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--hair); }
+  @media (max-width: 860px) { .nl-get { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .nl-get { grid-template-columns: 1fr; } }
+  .getcard { padding: 22px 20px 26px; border-right: 1px solid var(--hair); border-bottom: 1px solid var(--hair); position: relative; transition: background .12s; }
+  .getcard:hover { background: #0a0a0a; }
+  .getcard__no { font-family: var(--head); font-size: 30px; color: var(--accent); line-height: 0.8; display: block; margin-bottom: 14px; }
+  .getcard__tag { font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: var(--muted); }
+  .getcard__title { font-family: var(--head); font-weight: 400; font-size: 28px; letter-spacing: 0.5px; line-height: 0.96; margin: 8px 0 12px; }
+  .getcard__line { font-size: 13.5px; line-height: 1.5; color: #b4b4b4; margin: 0; }
+
+  /* stat strip */
+  .statstrip { background: var(--accent); color: #000; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 3px solid var(--line); border-bottom: 3px solid var(--line); }
+  @media (max-width: 560px) { .statstrip { grid-template-columns: repeat(2, 1fr); } }
+  .statstrip__cell { padding: 26px 20px; border-right: 2px solid #000; display: flex; flex-direction: column; gap: 4px; }
+  .statstrip__cell:last-child { border-right: none; }
+  .statstrip__v { font-family: var(--head); font-size: clamp(44px, 6vw, 68px); line-height: 0.8; }
+  .statstrip__k { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; }
+
+  /* past issues */
+  .nl-issues { display: flex; flex-direction: column; border-top: 1px solid var(--hair); }
+  .issue { display: grid; grid-template-columns: 64px 110px 1fr auto 28px; gap: 16px; align-items: center; padding: 18px 8px; border-bottom: 1px solid var(--hair); transition: background .12s, padding .12s; }
+  .issue:hover { background: var(--accent); color: #000; padding-left: 16px; }
+  .issue__no { font-family: var(--head); font-size: 24px; color: var(--accent); }
+  .issue:hover .issue__no { color: #000; }
+  .issue__date { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--muted); }
+  .issue:hover .issue__date { color: #000; }
+  .issue__title { font-family: var(--head); font-size: clamp(18px, 2.4vw, 26px); letter-spacing: 0.3px; line-height: 0.98; }
+  .issue__read { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--muted); }
+  .issue:hover .issue__read { color: #000; }
+  .issue__arrow { font-size: 18px; opacity: 0; transition: opacity .12s; }
+  .issue:hover .issue__arrow { opacity: 1; }
+  @media (max-width: 680px) {
+    .issue { grid-template-columns: 50px 1fr 28px; }
+    .issue__date, .issue__read { display: none; }
+  }
+
+  .nl-band { border-top: 3px solid var(--line); background: #050505; }
+  .nl-band__in { max-width: 1360px; margin: 0 auto; padding: 28px 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .nl-band__txt { font-family: var(--head); font-size: clamp(24px, 3.4vw, 38px); letter-spacing: 0.5px; line-height: 0.95; }
+  .nl-band__btn { background: var(--accent); color: #000; font-family: var(--head); font-size: 24px; letter-spacing: 1px; padding: 12px 26px; white-space: nowrap; }
+  .nl-band__btn:hover { filter: brightness(1.12); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="dt-data.jsx"></script>
+<script type="text/babel" src="dt-ui.jsx"></script>
+<script type="text/babel" src="dt-blocks.jsx"></script>
+<script type="text/babel" src="dt-newsletter.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const NL_ACCENTS = ["#39FF14","#FFEA00","#FF3B1D","#1FB6FF","#FF2D9B","#C6FF00","#00FFD1","#B388FF"];
+const pickAccent = () => NL_ACCENTS[Math.floor(Math.random() * NL_ACCENTS.length)];
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accent": "#39FF14",
+  "intensity": "feral",
+  "tickerStyle": "marquee"
+}/*EDITMODE-END*/;
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [cityKey, setCityKey] = useState("HUB");
+  const city = DT_CITIES[cityKey];
+
+  const [randAccent, setRandAccent] = useState(pickAccent);
+  const [userPicked, setUserPicked] = useState(false);
+  const accent = userPicked ? t.accent : randAccent;
+
+  useEffect(() => {
+    function tick() {
+      const el = document.getElementById("util-clock");
+      if (!el) return;
+      const d = new Date();
+      el.textContent = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata" }) + " IST";
+    }
+    tick();
+    const id = setInterval(tick, 1000 * 20);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="app" data-intensity={t.intensity} style={{ "--accent": accent }}>
+      <Masthead nav={DT_NAV} cityKey={cityKey} setCityKey={setCityKey} cities={DT_CITIES} />
+      <Ticker city={city} tickerStyle={t.tickerStyle} />
+      <NLHero />
+      <NLGet />
+      <NLStats />
+      <NLIssues />
+      <div className="nl-band">
+        <div className="nl-band__in">
+          <div className="nl-band__txt">STILL SCROLLING? JUST SUBSCRIBE ALREADY.</div>
+          <button className="nl-band__btn" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+            BACK TO TOP ▲
+          </button>
+        </div>
+      </div>
+      <Footer />
+
+      <TweaksPanel>
+        <TweakSection label="Brand accent" />
+        <TweakColor
+          label="Hub color"
+          value={accent}
+          options={NL_ACCENTS}
+          onChange={(v) => { setUserPicked(true); setTweak("accent", v); }}
+        />
+        <TweakButton
+          label="⚄ Reroll random color"
+          onClick={() => { setUserPicked(false); setRandAccent(pickAccent()); }}
+        />
+        <TweakSection label="Anti-design intensity" />
+        <TweakRadio
+          label="Vibe"
+          value={t.intensity}
+          options={["clean", "gritty", "feral"]}
+          onChange={(v) => setTweak("intensity", v)}
+        />
+        <TweakSection label="Ticker" />
+        <TweakRadio
+          label="Style"
+          value={t.tickerStyle}
+          options={["marquee", "static"]}
+          onChange={(v) => setTweak("tickerStyle", v)}
+        />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
