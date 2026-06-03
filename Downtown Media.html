@@ -378,6 +378,12 @@
     color: var(--dim); text-align: center; margin-bottom: 14px;
   }
 </style>
+<!-- dt-theme.css MUST load AFTER the inline <style> above so its mobile
+     layer (≤768px / ≤520px) wins the cascade against the desktop rules
+     duplicated inline. Without this link the homepage rendered the
+     desktop layout on phones with no breakpoints, so content sat wider
+     than the viewport. -->
+<link rel="stylesheet" href="dt-theme.css" />
 </head>
 <body>
 <div id="root"></div>
@@ -385,6 +391,13 @@
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore-compat.js"></script>
+<script src="dt-config.js"></script>
+<script src="dt-auth-client.js"></script>
+<script src="dt-auth-gate.js"></script>
 
 <script type="text/babel" src="tweaks-panel.jsx"></script>
 <script type="text/babel" src="dt-data.jsx"></script>

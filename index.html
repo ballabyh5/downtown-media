@@ -9,8 +9,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 <style>
   *, *::before, *::after { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: "Inter", system-ui, sans-serif; min-height: 100vh; }
+  html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: "Inter", system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+  html { -webkit-text-size-adjust: 100%; }
   .wrap { max-width: 880px; margin: 0 auto; padding: 64px 24px; }
+  @media (max-width: 520px) {
+    .wrap {
+      padding: 40px max(16px, env(safe-area-inset-left)) 40px max(16px, env(safe-area-inset-right));
+    }
+  }
   .kicker { font-family: "Space Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: 0.18em; color: #39FF14; text-transform: uppercase; margin: 0 0 12px; }
   h1 { font-family: "Bebas Neue", "Arial Narrow", sans-serif; font-size: clamp(48px, 8vw, 96px); letter-spacing: -2px; margin: 0 0 8px; line-height: 0.95; }
   h1 .accent { color: #39FF14; }
