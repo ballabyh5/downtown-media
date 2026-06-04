@@ -3,11 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- CSP, HSTS, X-Frame-Options, and friends are now set as real response
+     headers by Firebase Hosting (see firebase.json). The previous <meta>
+     CSP has been removed because: (a) response headers are stricter than
+     a meta tag, (b) frame-ancestors only works via header, (c) keeping
+     two sources of truth invites drift. -->
 <title>Log In / Join the Gang — Downtown Media</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="dt-theme.css" />
+<link rel="stylesheet" href="dt-theme.css?v=mobile-fix-1" />
 <style>
   /* ===== Auth page ===== */
   .auth { max-width: 1360px; margin: 0 auto; padding: 44px 24px 56px; display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 48px; align-items: start; }
@@ -43,7 +48,11 @@
   .af__input::placeholder { color: var(--dim); }
   .af__eye { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); padding: 0 14px; border-left: 1px solid var(--hair); flex-shrink: 0; }
   .af__eye:hover { color: var(--accent); }
-  .af__err { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent); }
+  .af__err { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent); display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .af__err-cta { font: inherit; color: #000; background: var(--accent); padding: 6px 10px; border: none; cursor: pointer; letter-spacing: 0.1em; }
+  .af__err-cta:hover { filter: brightness(1.1); }
+  .af__ok  { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink); border-left: 2px solid var(--accent); padding-left: 8px; }
+  .auth-submit[disabled], .auth-oauth__btn[disabled] { opacity: 0.55; cursor: progress; }
 
   .auth-chips { display: flex; flex-wrap: wrap; gap: 9px; }
 
@@ -89,7 +98,11 @@
 
   /* ===== right hype panel ===== */
   .auth-hype { position: relative; display: flex; flex-direction: column; gap: 26px; }
-  @media (max-width: 940px) { .auth-hype { order: -1; } }
+  /* Hype panel sits ABOVE the auth card on tablet widths (more visual
+     real-estate for the marketing). On phones (≤ 520px) the form goes
+     first — users tapped LOG IN to log in, not to read a member-card
+     pitch. So this rule is bounded to the tablet range only. */
+  @media (max-width: 940px) and (min-width: 521px) { .auth-hype { order: -1; } }
 
   .memcard { position: relative; border: 3px solid var(--line); background: linear-gradient(135deg, #0d0d0d 0%, #050505 100%); padding: 20px; overflow: hidden; }
   .memcard__top { display: flex; align-items: center; justify-content: space-between; }
@@ -119,6 +132,54 @@
   .app[data-intensity="feral"] .auth-stamp { transform: rotate(8deg); }
   .app[data-intensity="feral"] .memcard__chip { transform: rotate(-3deg); }
   @media (max-width: 520px) { .auth-stamp { display: none; } }
+
+  /* ===== Mobile scale (≤ 520px) for page-local components. dt-theme.css
+     handles shared/masthead elements; these are the auth-page-only ones
+     whose styles live inline above and would otherwise win the cascade
+     against any rule in dt-theme.css. ===== */
+  @media (max-width: 520px) {
+    .auth-hype { gap: 18px; }
+
+    .memcard { padding: 16px; }
+    .memcard__brand { font-size: 22px; }
+    .memcard__chip { font-size: 9px; padding: 3px 7px; }
+    .memcard__mid { margin: 18px 0 14px; gap: 10px; }
+    .memcard__no { font-size: 36px; }
+    .memcard__lab { font-size: 9px; }
+    .memcard__strip { font-size: 8px; padding: 5px 16px; margin: 0 -16px 14px; }
+    .memcard__bottom { gap: 24px; }
+    .memcard__k { font-size: 8px; }
+    .memcard__v { font-size: 16px; }
+
+    .auth-perks__head { font-size: 9px; padding: 11px 14px; }
+    .perk { padding: 13px 14px; grid-template-columns: 32px 1fr; gap: 10px; }
+    .perk__k { font-size: 24px; }
+    .perk__t { font-size: 16px; }
+    .perk__l { font-size: 12px; }
+
+    /* These override the no-media-query rules above which would
+       otherwise win the page-local-vs-dt-theme.css cascade fight.
+       line-height: 1 is critical — Bebas Neue's default line-box is
+       taller than its visual letters, which when combined with the
+       tap-target rule's align-items: center makes the text appear to
+       ride at the top of the tab. */
+    .auth-tab { font-size: 18px; padding: 14px 8px; line-height: 1; }
+    .auth-kicker { margin-bottom: 12px; }
+    .auth-title { font-size: clamp(24px, 7vw, 32px); margin-bottom: 18px; }
+
+    .auth-form { gap: 14px; }
+    .af { gap: 6px; }
+    .af__label { font-size: 10px; }
+    .af__input { padding: 11px 12px; }
+    .auth-submit { font-size: 22px; padding: 12px; }
+    .auth-or { font-size: 9px; }
+    .auth-oauth__btn { font-size: 11px; padding: 11px; }
+    .auth-switch { font-size: 10px; }
+
+    .auth-done__title { font-size: clamp(34px, 10vw, 48px); }
+    .auth-done__line { font-size: 14px; }
+    .auth-go { font-size: 22px; padding: 12px 22px; }
+  }
 </style>
 </head>
 <body>
@@ -127,6 +188,13 @@
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore-compat.js"></script>
+<script src="dt-config.js"></script>
+<script src="dt-auth-client.js"></script>
+<script src="dt-auth-gate.js"></script>
 
 <script type="text/babel" src="tweaks-panel.jsx"></script>
 <script type="text/babel" src="dt-data.jsx"></script>

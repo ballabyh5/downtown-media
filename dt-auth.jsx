@@ -3,6 +3,21 @@ const { useState: useAuth } = React;
 
 const AUTH_SPOKES = ["THE HUB", "DELHI", "MUMBAI", "BANGALORE"];
 
+// Map UI label → enum value the rules expect (see firestore.rules isValidSpoke).
+const SPOKE_TO_ENUM = { "THE HUB": "HUB", "DELHI": "DELHI", "MUMBAI": "MUMBAI", "BANGALORE": "BANGALORE" };
+
+const PASS_MIN = 12;
+const PASS_MAX = 128;
+const NAME_MAX = 50;
+const EMAIL_MAX = 254;
+// RFC-5322-lite. Server is the source of truth; this just kills obvious typos.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+// OAuth providers to show in the form. Drop "apple" until you have a paid
+// Apple Developer account and have configured the Apple provider in the
+// Firebase console — otherwise the button errors with "operation-not-allowed".
+const OAUTH_PROVIDERS = ["google"];
+
 const AUTH_PERKS = [
   { k: "01", t: "DROP ALERTS", l: "First dibs on merch restocks & live-show tickets before the public timeline." },
   { k: "02", t: "THE 6AM DROP", l: "Five things worth knowing, in your inbox before your first chai." },
@@ -43,22 +58,100 @@ function AuthCard({ startMode }) {
   const [agree, setAgree] = useAuth(false);
   const [errs, setErrs] = useAuth({});
   const [done, setDone] = useAuth(false);
+  const [busy, setBusy] = useAuth(false);
+  const [topErr, setTopErr] = useAuth("");
+  const [topErrCode, setTopErrCode] = useAuth("");
+  const [resetMsg, setResetMsg] = useAuth("");
 
   function flip(next) {
     setMode(next);
     setErrs({});
     setDone(false);
+    setTopErr("");
+    setTopErrCode("");
+    setResetMsg("");
   }
 
-  function submit(e) {
+  async function handleForgot(e) {
     e.preventDefault();
+    if (busy || !window.dtAuth) return;
+    setTopErr("");
+    setResetMsg("");
+    setBusy(true);
+    const { error } = await window.dtAuth.resetPassword(email);
+    setBusy(false);
+    if (error) { setTopErr(error); return; }
+    // Same UI message whether the email exists or not — prevents enumeration.
+    setResetMsg("IF THAT EMAIL'S ON THE LIST, A RESET LINK IS ON ITS WAY.");
+  }
+
+  async function handleOAuth(provider) {
+    if (busy || !window.dtAuth) return;
+    setTopErr("");
+    setBusy(true);
+    const { error } = await window.dtAuth.signInWithProvider(provider);
+    if (error) { setTopErr(error); setBusy(false); return; }
+    // Popup closed with a signed-in user. The gate (dt-auth-gate.js) will
+    // honor ?next= if set; otherwise show the same success card the
+    // email flow uses.
+    setMode("login");
+    setBusy(false);
+    setDone(true);
+  }
+
+  function validate() {
     const ex = {};
-    if (mode === "signup" && name.trim().length < 2) ex.name = "WE NEED SOMETHING TO CALL YOU.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) ex.email = "THAT EMAIL LOOKS FAKE. TRY AGAIN.";
-    if (pass.length < 6) ex.pass = "6+ CHARACTERS. MAKE IT MEAN SOMETHING.";
-    if (mode === "signup" && !agree) ex.agree = "TICK THE BOX. HOUSE RULES.";
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    if (mode === "signup") {
+      if (trimmedName.length < 2)  ex.name = "WE NEED SOMETHING TO CALL YOU.";
+      if (trimmedName.length > NAME_MAX) ex.name = "KEEP IT UNDER " + NAME_MAX + " CHARS.";
+      if (!agree)                  ex.agree = "TICK THE BOX. HOUSE RULES.";
+    }
+    if (trimmedEmail.length > EMAIL_MAX || !EMAIL_RE.test(trimmedEmail)) ex.email = "THAT EMAIL LOOKS FAKE. TRY AGAIN.";
+    if (pass.length < PASS_MIN)    ex.pass  = PASS_MIN + "+ CHARACTERS. MAKE IT MEAN SOMETHING.";
+    if (pass.length > PASS_MAX)    ex.pass  = "PASSWORD'S TOO LONG. KEEP IT UNDER " + PASS_MAX + ".";
+    return ex;
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    if (busy) return;
+    setTopErr("");
+    const ex = validate();
     setErrs(ex);
-    if (Object.keys(ex).length === 0) setDone(true);
+    if (Object.keys(ex).length > 0) return;
+    if (!window.dtAuth) { setTopErr("AUTH NOT READY. RELOAD AND TRY AGAIN."); return; }
+
+    setBusy(true);
+    try {
+      const payload = {
+        email: email,
+        password: pass,
+        displayName: name,
+        defaultSpoke: SPOKE_TO_ENUM[spoke] || "HUB",
+      };
+      const { error, code } = mode === "signup"
+        ? await window.dtAuth.signUp(payload)
+        : await window.dtAuth.signIn(payload);
+      if (error) { setTopErr(error); setTopErrCode(code || ""); return; }
+      setDone(true);
+    } catch (_unexpected) {
+      setTopErr("SOMETHING BROKE. TRY AGAIN.");
+      setTopErrCode("");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // One-click recovery: dup-email on signup → flip to login, keep email + password fields.
+  function switchToLoginFromDup() {
+    setMode("login");
+    setErrs({});
+    setTopErr("");
+    setTopErrCode("");
+    setResetMsg("");
+    setDone(false);
   }
 
   if (done) {
@@ -100,6 +193,17 @@ function AuthCard({ startMode }) {
         </h1>
 
         <form className="auth-form" onSubmit={submit} noValidate>
+          {topErr && (
+            <div className="af__err" role="alert">
+              ⚠ {topErr}
+              {topErrCode === "auth/email-already-in-use" && (
+                <button type="button" className="af__err-cta" onClick={switchToLoginFromDup}>
+                  ↪ TRY LOGGING IN INSTEAD
+                </button>
+              )}
+            </div>
+          )}
+          {resetMsg && <div className="af__ok" role="status">✓ {resetMsg}</div>}
           {mode === "signup" && (
             <AField label="WHAT DO WE CALL YOU" placeholder="e.g. Tank from Lajpat" value={name}
               onChange={(v) => setName(v)} err={errs.name} autoComplete="name" />
@@ -111,7 +215,7 @@ function AuthCard({ startMode }) {
           <AField
             label={mode === "login" ? "PASSWORD" : "SET A PASSWORD"}
             type={show ? "text" : "password"}
-            placeholder={mode === "login" ? "your secret handshake" : "6+ characters"}
+            placeholder={mode === "login" ? "your secret handshake" : PASS_MIN + "+ characters"}
             value={pass}
             onChange={(v) => setPass(v)}
             err={errs.pass}
@@ -136,7 +240,7 @@ function AuthCard({ startMode }) {
                 <span className="auth-check__box">{remember ? "✓" : ""}</span>
                 KEEP ME ON THE STREETS
               </button>
-              <a href="#" className="auth-link" onClick={(e) => e.preventDefault()}>FORGOT IT?</a>
+              <a href="#" className="auth-link" onClick={handleForgot}>FORGOT IT?</a>
             </div>
           ) : (
             <div className="af">
@@ -148,16 +252,28 @@ function AuthCard({ startMode }) {
             </div>
           )}
 
-          <button type="submit" className="auth-submit">
-            {mode === "login" ? "LET ME IN ▶" : "MAKE IT OFFICIAL ▶"}
+          <button type="submit" className="auth-submit" disabled={busy} aria-busy={busy}>
+            {busy
+              ? (mode === "login" ? "CHECKING…" : "SIGNING YOU UP…")
+              : (mode === "login" ? "LET ME IN ▶" : "MAKE IT OFFICIAL ▶")}
           </button>
 
-          <div className="auth-or"><span>OR</span></div>
+          {OAUTH_PROVIDERS.length > 0 && <div className="auth-or"><span>OR</span></div>}
 
-          <div className="auth-oauth">
-            <button type="button" className="auth-oauth__btn" onClick={(e) => e.preventDefault()}><span className="auth-oauth__g">G</span> GOOGLE</button>
-            <button type="button" className="auth-oauth__btn" onClick={(e) => e.preventDefault()}><span className="auth-oauth__g"></span> APPLE</button>
-          </div>
+          {OAUTH_PROVIDERS.length > 0 && (
+            <div className="auth-oauth" style={{ gridTemplateColumns: `repeat(${OAUTH_PROVIDERS.length}, 1fr)` }}>
+              {OAUTH_PROVIDERS.includes("google") && (
+                <button type="button" className="auth-oauth__btn" disabled={busy} onClick={() => handleOAuth("google")}>
+                  <span className="auth-oauth__g">G</span> GOOGLE
+                </button>
+              )}
+              {OAUTH_PROVIDERS.includes("apple") && (
+                <button type="button" className="auth-oauth__btn" disabled={busy} onClick={() => handleOAuth("apple")}>
+                  <span className="auth-oauth__g"></span> APPLE
+                </button>
+              )}
+            </div>
+          )}
 
           <p className="auth-switch">
             {mode === "login" ? (

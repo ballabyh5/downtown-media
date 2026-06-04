@@ -39,7 +39,9 @@
   .util__l, .util__r { display: flex; align-items: center; gap: 10px; }
   .util__sep { color: var(--dim); }
   .util__r a:hover { color: var(--ink); }
-  .util__cta { color: var(--accent) !important; font-weight: 700; }
+  .util__cta { color: var(--accent) !important; font-weight: 700; background: none; border: none; padding: 0; font: inherit; cursor: pointer; letter-spacing: inherit; }
+  .util__cta[disabled] { opacity: 0.5; cursor: progress; }
+  .util__who { color: var(--ink); font-weight: 700; max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .util__time { color: var(--ink); }
 
   .mast__main {
@@ -366,4 +368,108 @@
     content: "● ● ● THE ROSTER ● ● ● THE ROSTER ● ● ●";
     display: block; font-family: var(--mono); font-size: 9px; letter-spacing: 0.3em;
     color: var(--dim); text-align: center; margin-bottom: 14px;
+  }
+  /* ============================================================
+     MOBILE LAYER  — added Phase 3, applies after everything above
+     ============================================================ */
+
+  /* 1. Horizontal-scroll guard. Any rogue rule with content wider than
+        the viewport (long ticker text, sticky absolute element, etc.) is
+        contained here instead of breaking the whole page layout. */
+  html, body { overflow-x: hidden; }
+
+  /* 2. Stop iOS Safari from auto-shrinking text on orientation change. */
+  html { -webkit-text-size-adjust: 100%; }
+
+  /* 3. iOS Safari zooms the viewport whenever a focused input has
+        font-size < 16px. Bump form fields globally so every focus is
+        smooth on phones; desktop won't notice the 1px difference. */
+  .af__input, .search,
+  input[type="email"], input[type="password"], input[type="text"] {
+    font-size: 16px;
+  }
+
+  /* 4. Mobile layer (≤ 768px). WCAG 2.5.5 tap-target floor + switch
+        over-stuffed nav rows to horizontal scroll instead of wrap-chaos. */
+  @media (max-width: 768px) {
+    .nav__link, .citystrip__tab, .spokes__btn, .spokes__opt,
+    .util__r a, .util__cta,
+    .auth-tab, .auth-oauth__btn, .auth-link, .auth-check, .auth-redo,
+    .chip, .af__eye, .af__err-cta {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .auth-submit { min-height: 52px; }
+
+    /* Nav + city strip: scroll horizontally inside their own row instead
+       of wrapping. No visible scrollbar; momentum scrolling stays on. */
+    .nav, .citystrip {
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .nav::-webkit-scrollbar,
+    .citystrip::-webkit-scrollbar { display: none; }
+    .nav__link, .citystrip__tab { flex-shrink: 0; }
+  }
+
+  /* 5. Narrow phones (≤ 520px). Tightens horizontal padding, drops the
+        search field, shrinks the logo + masthead, respects notch areas.
+        These overrides use !important sparingly because the page-local
+        <style> blocks load AFTER dt-theme.css and would otherwise win
+        on equal-specificity. Limited to mobile-scale rules to keep the
+        desktop cascade clean. */
+  @media (max-width: 520px) {
+    .wrap, .hero, .roster__head, .merch__head, .foot__top, .foot__bar,
+    .util, .mast__main, .citystrip {
+      padding-left:  max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+    .foot__bar { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+
+    .search, .mast__search { display: none; }
+    .util { font-size: 10px; flex-wrap: wrap; row-gap: 4px; padding-top: 5px; padding-bottom: 5px; }
+    .util__wx { display: none; }
+
+    .mast__main { padding-top: 10px; padding-bottom: 10px; row-gap: 8px; }
+    .logo__word { font-size: 22px; }
+    .logo__sub  { font-size: 9px; }
+    .logo__mark { font-size: 13px; padding: 1px 4px; }
+
+    .nav__link { font-size: 12px; padding: 6px 10px; letter-spacing: 0.1em; }
+    .spokes__btn { font-size: 12px; padding: 6px 10px; }
+
+    .citystrip__tab { font-size: 9px; padding: 8px 10px; letter-spacing: 0.12em; }
+  }
+
+  /* 6. Ticker on mobile: the static-stack version (3 rows) wraps each
+        long headline to 2-3 lines, eating half the viewport. Truncate to
+        single lines with ellipsis. The marquee version is unaffected. */
+  @media (max-width: 520px) {
+    .ticker { min-height: auto; }
+    .ticker--static .ticker__stack { padding: 6px 14px; gap: 1px; }
+    .ticker--static .ticker__row {
+      font-size: 11px; line-height: 1.4;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 100%; min-width: 0;
+    }
+    .ticker__badge { font-size: 9px; padding: 0 10px; }
+    .ticker__item { font-size: 11px; padding: 0 14px; }
+  }
+
+  /* 7. Auth page specifics. (a) Inner padding tightens. (b) Form is
+        flipped ABOVE the marketing hype on phones — the user tapped
+        "LOG IN" expecting credentials, not a member-card pitch. */
+  @media (max-width: 520px) {
+    .auth { padding: 20px 16px 32px; gap: 22px; }
+    .auth-card { box-shadow: 6px 6px 0 var(--accent); }
+    .auth-card__pad { padding: 20px 16px; }
+    .auth-tab { font-size: 22px; padding: 12px 8px; }
+    .auth-title { font-size: clamp(28px, 8vw, 38px); }
+    .af__err { font-size: 11px; }
+
+    /* Override Log In.html's order: -1 — form first on phones. */
+    .auth-hype { order: 2; }
+    .auth-card { order: 1; }
   }

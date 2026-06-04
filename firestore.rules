@@ -1,0 +1,63 @@
+rules_version = '2';
+
+// Firestore Security Rules — the actual authorization perimeter.
+// This file is the Firebase equivalent of the Postgres RLS policies in
+// supabase/migrations/0001_init_auth.sql. Anyone (including unauthenticated)
+// can read profiles (display names are public, like a byline). Only the
+// owning user can create or update their own profile. No client deletes.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function isAuthed() { return request.auth != null; }
+    function isOwner(uid) { return isAuthed() && request.auth.uid == uid; }
+    function isValidSpoke(s) {
+      return s is string && s in ['HUB', 'DELHI', 'MUMBAI', 'BANGALORE'];
+    }
+    function isValidName(n) {
+      return n is string && n.size() >= 2 && n.size() <= 50;
+    }
+
+    // ---------- profiles ----------
+    // Document ID == Firebase Auth uid (1:1 mirror of the auth user).
+    match /profiles/{uid} {
+
+      allow read: if true;
+
+      // First-sign-in creation. Client calls this once after signUp.
+      // The rule enforces what the Supabase trigger used to enforce:
+      // shape, ownership, and that timestamps are server-set.
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(
+             ['displayName', 'defaultSpoke', 'createdAt', 'updatedAt'])
+        && isValidName(request.resource.data.displayName)
+        && isValidSpoke(request.resource.data.defaultSpoke)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      // Updates: owner only, only the two safe columns may change,
+      // updatedAt must be server-set, validated shapes if present.
+      allow update: if isOwner(uid)
+        && request.resource.data.diff(resource.data)
+             .affectedKeys()
+             .hasOnly(['displayName', 'defaultSpoke', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+        && (!('displayName' in request.resource.data.diff(resource.data).affectedKeys())
+            || isValidName(request.resource.data.displayName))
+        && (!('defaultSpoke' in request.resource.data.diff(resource.data).affectedKeys())
+            || isValidSpoke(request.resource.data.defaultSpoke));
+
+      // No client deletes. If you ever need GDPR-style account wipe,
+      // do it from a Cloud Function triggered on auth user deletion.
+      allow delete: if false;
+    }
+
+    // ---------- default deny ----------
+    // Belt-and-braces: any collection not explicitly allowed above is
+    // unreachable. Adding new collections requires explicit rules.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

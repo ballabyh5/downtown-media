@@ -1,0 +1,46 @@
+name: Deploy to Firebase Hosting
+
+# This workflow is inert until you create the secret it depends on.
+# To enable:
+#   1. Run `firebase init hosting:github` locally — it will create a
+#      service account in your GCP project and add the JSON as a repo
+#      secret named FIREBASE_SERVICE_ACCOUNT_<PROJECT_ID_UPPERCASE>.
+#   2. Rename that secret in the GitHub UI to FIREBASE_SERVICE_ACCOUNT
+#      (or change the line below to match what the CLI generated).
+#   3. Push to main — first run will deploy to the live channel.
+#
+# Until step 1 is done, the workflow run will fail at the deploy step
+# with a clear "Missing secret" error. Nothing else breaks.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+concurrency:
+  group: firebase-hosting-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No build step — this project ships static files directly.
+      # When you adopt a build (e.g. Vite), add the install + build
+      # steps here and point firebase.json "hosting.public" at dist/.
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: ${{ github.event_name == 'pull_request' && 'preview' || 'live' }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}

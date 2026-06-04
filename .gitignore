@@ -14,3 +14,21 @@ ev/
 downtown-media-deploy.zip
 *.zip
 node_modules/
+
+# Firebase CLI local state (upload cache, debug logs).
+# Never contains secrets but churns on every deploy.
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Belt-and-braces guards against accidentally committing real secrets
+# later — e.g. if you ever add a build step, a server, or admin tooling.
+.env
+.env.*
+!.env.example
+*service-account*.json
+*serviceAccount*.json
+*-credentials.json
+*.pem
+*.key

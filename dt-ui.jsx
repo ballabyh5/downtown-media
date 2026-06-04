@@ -130,6 +130,8 @@ function Masthead({ nav, cityKey, setCityKey, cities, active }) {
   const PAGES = { HUB: "Downtown Media.html", ESPORTS: "Esports.html", EVENTS: "Events.html" };
   const [openSpokes, setOpenSpokes] = useState(false);
   const [q, setQ] = useState("");
+  const [session, setSession] = useState(typeof window !== "undefined" ? window.dtSession : null);
+  const [signingOut, setSigningOut] = useState(false);
   const wrapRef = useRef(null);
 
   useEffect(() => {
@@ -138,10 +140,25 @@ function Masthead({ nav, cityKey, setCityKey, cities, active }) {
         setOpenSpokes(false);
     }
     document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
+    function onSession(e) { setSession(e.detail); }
+    window.addEventListener("dt:session", onSession);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      window.removeEventListener("dt:session", onSession);
+    };
   }, []);
 
+  async function handleLogout() {
+    if (signingOut || !window.dtAuth) return;
+    setSigningOut(true);
+    await window.dtAuth.signOut();
+    // Reload so any cached UI state resets cleanly.
+    window.location.reload();
+  }
+
   const spokes = ["DELHI", "MUMBAI", "BANGALORE"];
+  const userEmail = session && session.user ? session.user.email : "";
+  const userTag = userEmail ? userEmail.split("@")[0].toUpperCase().slice(0, 18) : "";
 
   return (
     <header className="mast">
@@ -156,8 +173,25 @@ function Masthead({ nav, cityKey, setCityKey, cities, active }) {
         <div className="util__r">
           <a href="Newsletter.html">NEWSLETTER</a>
           <span className="util__sep">/</span>
-          <a href="Log In.html">LOG IN</a>
-          <a href="Log In.html?mode=signup" className="util__cta">JOIN THE GANG</a>
+          {session ? (
+            <>
+              <span className="util__who" title={userEmail}>HI, {userTag}</span>
+              <button
+                type="button"
+                className="util__cta"
+                onClick={handleLogout}
+                disabled={signingOut}
+                aria-busy={signingOut}
+              >
+                {signingOut ? "LOGGING OUT…" : "LOG OUT"}
+              </button>
+            </>
+          ) : (
+            <>
+              <a href="Log In.html">LOG IN</a>
+              <a href="Log In.html?mode=signup" className="util__cta">JOIN THE GANG</a>
+            </>
+          )}
         </div>
       </div>
 

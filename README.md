@@ -30,6 +30,26 @@ python3 -m http.server 8000
 
 Then open http://localhost:8000.
 
+## Auth + data
+
+Firebase Auth (email/password + Google/Apple OAuth) and Firestore (single
+`profiles/{uid}` collection). The single client + helpers live in
+`dt-auth-client.js`; the page-level gate in `dt-auth-gate.js`. Firestore
+authorization is in `firestore.rules`. See `firebase/README.md` for
+one-time project setup.
+
 ## Deploy
 
-Pushes to `main` auto-deploy to GitHub Pages via `.github/workflows/pages.yml`.
+Firebase Hosting via the Firebase CLI:
+
+```bash
+npm i -g firebase-tools
+firebase login
+# edit .firebaserc with your project ID
+firebase deploy
+```
+
+Live URL: `https://<project-id>.web.app`.
+
+Security headers (CSP, HSTS, X-Frame-Options, etc.) are set in
+`firebase.json` and apply to every response.
