@@ -447,12 +447,18 @@
         long headline to 2-3 lines, eating half the viewport. Truncate to
         single lines with ellipsis. The marquee version is unaffected. */
   @media (max-width: 520px) {
-    .ticker { min-height: auto; }
+    .ticker { min-height: auto; overflow: hidden; }
+    .ticker__viewport, .ticker__stack { min-width: 0; max-width: 100%; overflow: hidden; }
     .ticker--static .ticker__stack { padding: 6px 14px; gap: 1px; }
+    /* Override: switch row from flex to block so text-overflow: ellipsis
+       actually fires. The dot becomes inline-block aligned with the text. */
     .ticker--static .ticker__row {
-      font-size: 11px; line-height: 1.4;
+      display: block; font-size: 11px; line-height: 1.4;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       max-width: 100%; min-width: 0;
+    }
+    .ticker--static .ticker__row .ticker__dot {
+      display: inline-block; vertical-align: middle; margin-right: 8px;
     }
     .ticker__badge { font-size: 9px; padding: 0 10px; }
     .ticker__item { font-size: 11px; padding: 0 14px; }
@@ -462,12 +468,19 @@
         flipped ABOVE the marketing hype on phones — the user tapped
         "LOG IN" expecting credentials, not a member-card pitch. */
   @media (max-width: 520px) {
-    .auth { padding: 20px 16px 32px; gap: 22px; }
-    .auth-card { box-shadow: 6px 6px 0 var(--accent); }
+    .auth { padding: 20px 16px 32px; gap: 22px; min-width: 0; }
+    /* Grid children default to min-width: auto (min-content), which lets
+       long words push the card wider than the viewport. Force them to
+       shrink. Same trick on flex children inside the card. */
+    .auth > * { min-width: 0; max-width: 100%; }
+    .auth-card { box-shadow: 6px 6px 0 var(--accent); overflow: hidden; min-width: 0; }
     .auth-card__pad { padding: 20px 16px; }
     .auth-tab { font-size: 22px; padding: 12px 8px; }
     .auth-title { font-size: clamp(28px, 8vw, 38px); }
     .af__err { font-size: 11px; }
+    .auth-form, .af, .af__wrap, .auth-oauth { min-width: 0; max-width: 100%; }
+    .af__wrap { overflow: hidden; }
+    .af__input { min-width: 0; width: 100%; }
 
     /* Override Log In.html's order: -1 — form first on phones. */
     .auth-hype { order: 2; }
